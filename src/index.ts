@@ -14,7 +14,7 @@ import {
 import axios from "axios";
 
 
-const MCP_SERVER_URL = process.env.MCP_SERVER_URL || "https://mcp.oktopost.com";
+const MCP_SERVER_URL = "https://mcp.oktopost.com";
 const OKTOPOST_REGION = process.env.REGION || "us";
 const OKTOPOST_ACCOUNT_ID = process.env.OKTOPOST_ACCOUNT_ID || '-';
 const OKTOPOST_API_KEY = process.env.OKTOPOST_API_KEY || '-';
@@ -28,7 +28,7 @@ class OktopostMCPClient
         this.server = new Server(
             {
                 name: "oktopost-mcp-client",
-                version: "1.0.0",
+                version: "1.1.0",
             },
             {
                 capabilities: {

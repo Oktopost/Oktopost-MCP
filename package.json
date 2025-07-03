@@ -1,14 +1,14 @@
 {
   "name": "oktopost-mcp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "MCP server for Oktopost",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/index.mjs",
   "bin": {
-    "oktopost-mcp-client": "dist/index.js"
+    "oktopost-mcp": "dist/index.mjs"
   },
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --outfile=dist/index.js --banner:js=\"#!/usr/bin/env node\" --format=esm --external:fsevents --external:axios --external:util --external:form-data --external:combined-stream",
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node22 --outfile=dist/index.mjs --banner:js=\"#!/usr/bin/env node\" --format=esm --external:axios --external:@modelcontextprotocol/sdk",
     "dev": "tsx src/index.ts",
     "prepare": "npm run build"
   },
@@ -32,6 +32,6 @@
     "typescript": "^5.0.0"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=20"
   }
 }
