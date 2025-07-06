@@ -26,6 +26,13 @@ pids
 # Optional eslint cache
 .eslintcache
 
+# Test coverage
+coverage/
+*.lcov
+
+# IDE files
+.idea/
+
 # OS generated files
 .DS_Store
 .DS_Store?

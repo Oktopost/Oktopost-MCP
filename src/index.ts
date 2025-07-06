@@ -1,228 +1,230 @@
-import {Server} from "@modelcontextprotocol/sdk/server/index.js";
-import {StdioServerTransport} from "@modelcontextprotocol/sdk/server/stdio.js";
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+
 import {
-    ListToolsRequestSchema,
-    CallToolRequestSchema,
-    ListResourcesRequestSchema,
-    ReadResourceRequestSchema,
-    ListPromptsRequestSchema,
-    GetPromptRequestSchema,
-    CallToolRequest,
-    ReadResourceRequest,
-    GetPromptRequest,
-} from "@modelcontextprotocol/sdk/types.js";
-import axios from "axios";
+	ListToolsRequestSchema,
+	CallToolRequestSchema,
+	ListResourcesRequestSchema,
+	ReadResourceRequestSchema,
+	ListPromptsRequestSchema,
+	GetPromptRequestSchema,
+	CallToolRequest,
+	ReadResourceRequest,
+	GetPromptRequest,
+} from '@modelcontextprotocol/sdk/types.js';
+import axios from 'axios';
+import { readFileSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
-
-const MCP_SERVER_URL = process.env.MCP_SERVER_URL || "https://mcp.oktopost.com";
-const OKTOPOST_REGION = process.env.REGION || "us";
+const MCP_SERVER_URL = 'https://mcp.oktopost.com';
+const OKTOPOST_REGION = process.env.OKTOPOST_ACCOUNT_REGION || 'us';
 const OKTOPOST_ACCOUNT_ID = process.env.OKTOPOST_ACCOUNT_ID || '-';
 const OKTOPOST_API_KEY = process.env.OKTOPOST_API_KEY || '-';
 
-class OktopostMCPClient 
-{
-    private server: Server;
+const getVersion = () => {
+	try {
+		const __filename = fileURLToPath(import.meta.url);
+		const __dirname = dirname(__filename);
 
-    
-    constructor() {
-        this.server = new Server(
-            {
-                name: "oktopost-mcp-client",
-                version: "1.0.0",
-            },
-            {
-                capabilities: {
-                    tools: {},
-                    resources: {},
-                    prompts: {},
-                },
-            }
-        );
+		const packagePath = join(__dirname, '..', 'package.json');
+		const pkg = JSON.parse(readFileSync(packagePath, 'utf8'));
+		return pkg.version;
+	} catch {
+		return '1.0-dev';
+	}
+};
 
-        this.setupHandlers();
-    }
+class OktopostMCP {
+	private server: Server;
 
-    
-    private async makeRequest(endpoint: string, data: any) {
-        const headers: Record<string, string> = {
-            "Content-Type": "application/json",
-        };
+	constructor() {
+		this.server = new Server(
+			{
+				name: 'oktopost-mcp',
+				version: getVersion(),
+			},
+			{
+				capabilities: {
+					tools: {},
+					resources: {},
+					prompts: {},
+				},
+			}
+		);
 
-        headers["X-Oktopost-Account-ID"] = OKTOPOST_ACCOUNT_ID;
-        headers["X-Oktopost-API-Key"] = OKTOPOST_API_KEY;
-        headers["X-Oktopost-Region"] = OKTOPOST_REGION;
+		this.setupHandlers();
+	}
 
-        try {
-            const response = await axios.post(`${MCP_SERVER_URL}${endpoint}`, data, {
-                headers,
-                timeout: 30000,
-            });
+	private async makeRequest(endpoint: string, data: Record<string, unknown>) {
+		const headers: Record<string, string> = {
+			'Content-Type': 'application/json',
+		};
 
-            return response.data;
-        } catch (error) {
-            if (axios.isAxiosError(error)) {
-                const message = error.response?.data?.error?.message || error.message;
-                throw new Error(`API Error: ${message}`);
-            }
-            throw error;
-        }
-    }
+		headers['X-Oktopost-Account-ID'] = OKTOPOST_ACCOUNT_ID;
+		headers['X-Oktopost-API-Key'] = OKTOPOST_API_KEY;
+		headers['X-Oktopost-Region'] = OKTOPOST_REGION;
 
-    private setupHandlers() 
-    {
-        this.server.setRequestHandler(ListToolsRequestSchema, async () => 
-        {
-            const response = await this.makeRequest("/mcp/tools/list", {
-                method: "tools/list",
-            });
+		try {
+			const response = await axios.post(`${MCP_SERVER_URL}${endpoint}`, data, {
+				headers,
+				timeout: 30000,
+			});
 
-            if (response.error) 
-            {
-                throw new Error(response.error.message);
-            }
+			return response.data;
+		} catch (error) {
+			if (axios.isAxiosError(error)) {
+				const message = error.response?.data?.error?.message || error.message;
+				throw new Error(`API Error: ${message}`);
+			}
+			throw error;
+		}
+	}
 
-            return {
-                ...response.result,
-                _meta: {}
-            };
-        });
+	private setupHandlers() {
+		this.server.setRequestHandler(ListToolsRequestSchema, async () => {
+			const response = await this.makeRequest('/mcp/tools/list', {
+				method: 'tools/list',
+			});
 
-        this.server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => 
-        {
-            const response = await this.makeRequest("/mcp/tools/call", {
-                method: "tools/call",
-                params: {
-                    name: request.params.name,
-                    arguments: request.params.arguments || {},
-                },
-            });
+			if (response.error) {
+				throw new Error(response.error.message);
+			}
 
-            if (response.error) 
-            {
-                throw new Error(response.error.message);
-            }
+			return {
+				...response.result,
+				_meta: {},
+			};
+		});
 
-            if (response.result && response.result.content) {
-                const processedContent = response.result.content.map((item: any) => 
-                {
-                    if (item.type === "text" && typeof item.text === "object") 
-                    {
-                        return {...item, text: JSON.stringify(item.text, null, 2)};
-                    }
-                    
-                    return item;
-                });
+		this.server.setRequestHandler(
+			CallToolRequestSchema,
+			async (request: CallToolRequest) => {
+				const response = await this.makeRequest('/mcp/tools/call', {
+					method: 'tools/call',
+					params: {
+						name: request.params.name,
+						arguments: request.params.arguments || {},
+					},
+				});
 
-                return {
-                    content: processedContent,
-                    _meta: {}
-                };
-            }
+				if (response.error) {
+					throw new Error(response.error.message);
+				}
 
-            return {
-                ...response.result,
-                _meta: {}
-            };
-        });
+				if (response.result && response.result.content) {
+					const processedContent = response.result.content.map(
+						(item: Record<string, unknown>) => {
+							if (item.type === 'text' && typeof item.text === 'object') {
+								return { ...item, text: JSON.stringify(item.text, null, 2) };
+							}
 
+							return item;
+						}
+					);
 
-        // Handle resource listing
-        this.server.setRequestHandler(ListResourcesRequestSchema, async () => 
-        {
-            const response = await this.makeRequest("/mcp/resources/list", 
-            {
-                method: "resources/list",
-            });
+					return {
+						content: processedContent,
+						_meta: {},
+					};
+				}
 
-            if (response.error) 
-            {
-                throw new Error(response.error.message);
-            }
+				return {
+					...response.result,
+					_meta: {},
+				};
+			}
+		);
 
-            return {
-                ...response.result,
-                _meta: {}
-            };
-        });
+		// Handle resource listing
+		this.server.setRequestHandler(ListResourcesRequestSchema, async () => {
+			const response = await this.makeRequest('/mcp/resources/list', {
+				method: 'resources/list',
+			});
 
-        // Handle resource reading
-        this.server.setRequestHandler(ReadResourceRequestSchema, async (request: ReadResourceRequest) => 
-        {
-            const response = await this.makeRequest("/mcp/resources/read", {
-                method: "resources/read",
-                params: 
-                {
-                    uri: request.params.uri,
-                },
-            });
+			if (response.error) {
+				throw new Error(response.error.message);
+			}
 
-            if (response.error) 
-            {
-                throw new Error(response.error.message);
-            }
+			return {
+				...response.result,
+				_meta: {},
+			};
+		});
 
-            return {
-                ...response.result,
-                _meta: {}
-            };
-        });
+		// Handle resource reading
+		this.server.setRequestHandler(
+			ReadResourceRequestSchema,
+			async (request: ReadResourceRequest) => {
+				const response = await this.makeRequest('/mcp/resources/read', {
+					method: 'resources/read',
+					params: {
+						uri: request.params.uri,
+					},
+				});
 
-        // Handle prompt listing
-        this.server.setRequestHandler(ListPromptsRequestSchema, async () => 
-        {
-            const response = await this.makeRequest("/mcp/prompts/list", {
-                method: "prompts/list",
-            });
+				if (response.error) {
+					throw new Error(response.error.message);
+				}
 
-            if (response.error) 
-            {
-                throw new Error(response.error.message);
-            }
+				return {
+					...response.result,
+					_meta: {},
+				};
+			}
+		);
 
-            return {
-                ...response.result,
-                _meta: {}
-            };
-        });
+		// Handle prompt listing
+		this.server.setRequestHandler(ListPromptsRequestSchema, async () => {
+			const response = await this.makeRequest('/mcp/prompts/list', {
+				method: 'prompts/list',
+			});
 
-        // Handle prompt getting
-        this.server.setRequestHandler(GetPromptRequestSchema, async (request: GetPromptRequest) => 
-        {
-            const response = await this.makeRequest("/mcp/prompts/get", {
-                method: "prompts/get",
-                params: {
-                    name: request.params.name,
-                    arguments: request.params.arguments || {},
-                },
-            });
+			if (response.error) {
+				throw new Error(response.error.message);
+			}
 
-            if (response.error) 
-            {
-                throw new Error(response.error.message);
-            }
+			return {
+				...response.result,
+				_meta: {},
+			};
+		});
 
-            return {
-                ...response.result,
-                _meta: {}
-            };
-        });
-    }
+		// Handle prompt getting
+		this.server.setRequestHandler(
+			GetPromptRequestSchema,
+			async (request: GetPromptRequest) => {
+				const response = await this.makeRequest('/mcp/prompts/get', {
+					method: 'prompts/get',
+					params: {
+						name: request.params.name,
+						arguments: request.params.arguments || {},
+					},
+				});
 
-    async run() 
-    {
-        const transport = new StdioServerTransport();
-        await this.server.connect(transport);
+				if (response.error) {
+					throw new Error(response.error.message);
+				}
 
-        console.error("Oktopost MCP Client ready");
-        console.error(`Server URL: ${MCP_SERVER_URL}`);
-        console.error(`AccountID: ${OKTOPOST_ACCOUNT_ID ? "***" + OKTOPOST_ACCOUNT_ID.slice(-4) : "NOT SET"}`);
-    }
+				return {
+					...response.result,
+					_meta: {},
+				};
+			}
+		);
+	}
+
+	async run() {
+		const transport = new StdioServerTransport();
+		await this.server.connect(transport);
+
+		console.error(`Oktopost MCP server v${getVersion()} is ready`);
+	}
 }
 
-const client = new OktopostMCPClient();
+const client = new OktopostMCP();
 
-client.run().catch((error) => 
-{
-    console.error("Failed to start client:", error);
-    process.exit(1);
+client.run().catch(error => {
+	console.error('Failed to start client:', error);
+	process.exit(1);
 });
