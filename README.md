@@ -57,8 +57,8 @@ Add the following to your `claude_desktop_config.json` file:
       "args": ["oktopost-mcp"],
       "env": {
         "OKTOPOST_ACCOUNT_REGION": "us",
-        "OKTOPOST_ACCOUNT_ID": "your-oktopost-account-id",
-        "OKTOPOST_API_KEY": "your-oktopost-api-key"
+        "OKTOPOST_ACCOUNT_ID": "your_oktopost_account_id",
+        "OKTOPOST_API_KEY": "your_oktopost_api_key"
       }
     }
   }
