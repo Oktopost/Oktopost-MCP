@@ -1,6 +1,8 @@
 # Oktopost MCP Server
 
-A Model Context Protocol (MCP) server that provides access to Oktopost API.
+A Model Context Protocol (MCP) server that enables AI assistants to generate and publish content with Oktopost. This server bridges AI models with Oktopost's social publishing platform, supporting content creation, scheduling, and publishing for corporate channels, as well as content generation and placement in the Employee Advocacy Board for employee sharing.
+
+Our implementation focuses on high-impact workflows, ensuring brand-compliant content is created efficiently and distributed appropriately. Optimized for AI-driven interactions, it enables scalable, reliable content operations across both corporate and advocacy use cases.
 
 ## Prerequisites
 
@@ -114,13 +116,9 @@ If you encounter issues or have questions about the Oktopost MCP Server:
 
 ### Contact Information
 
-- **Email**: [it@oktopost.com](mailto:it@oktopost.com)
+- **Email**: [help@oktopost.com](mailto:help@oktopost.com)
 - **GitHub Issues**: [https://github.com/Oktopost/oktopost-mcp/issues](https://github.com/Oktopost/oktopost-mcp/issues)
 - **Oktopost Support**: [https://help.oktopost.com](https://help.oktopost.com)
-
-### Priority Support
-
-For customers with dedicated support agreements, please contact your designated customer success manager or use your priority support channels.
 
 ## License
 
