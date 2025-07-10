@@ -17,7 +17,7 @@ import { readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
-const MCP_SERVER_URL = 'https://mcp.oktopost.com';
+const MCP_SERVER_URL = process.env.MCP_HOST || 'https://mcp.oktopost.com';
 const OKTOPOST_REGION = process.env.OKTOPOST_ACCOUNT_REGION || 'us';
 const OKTOPOST_ACCOUNT_ID = process.env.OKTOPOST_ACCOUNT_ID || '-';
 const OKTOPOST_API_KEY = process.env.OKTOPOST_API_KEY || '-';
@@ -218,13 +218,13 @@ class OktopostMCP {
 		const transport = new StdioServerTransport();
 		await this.server.connect(transport);
 
-		console.error(`Oktopost MCP server v${getVersion()} is ready`);
+		console.error(`Oktopost-MCP server v${getVersion()} is ready`);
 	}
 }
 
 const client = new OktopostMCP();
 
 client.run().catch(error => {
-	console.error('Failed to start client:', error);
+	console.error('Failed to start Oktopost-MCP: ', error);
 	process.exit(1);
 });
