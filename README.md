@@ -1,55 +1,84 @@
 # Oktopost MCP Server
 
-A Model Context Protocol (MCP) server that enables AI assistants to generate and publish content with Oktopost. This server bridges AI models with Oktopost's social publishing platform, supporting content creation, scheduling, and publishing for corporate channels, as well as content generation and placement in the Employee Advocacy Board for employee sharing.
+This MCP Server provides a full-featured integration layer on top of the Oktopost REST API, enabling secure, structured access to campaigns, messages, posts, media assets, uploads, social profiles, calendars, workflows, employee advocacy boards, and user data. It provides a comprehensive set of tools that enable MCP clients to create and manage content, schedule posts, handle approvals, interact with advocacy programs, and streamline day-to-day social operations directly in Oktopost.
 
-Our implementation focuses on high-impact workflows, ensuring brand-compliant content is created efficiently and distributed appropriately. Optimized for AI-driven interactions, it enables scalable, reliable content operations across both corporate and advocacy use cases.
 
-## Prerequisites
+## Available Tools
 
-This MCP server requires Node.js (version 20 or higher) to be installed on your system.
+### Campaigns
+- **create_campaign** — Create a new campaign with name, URL, and tags.  
+- **get_campaign_by_id** — Retrieve a campaign by ID.  
+- **list_campaigns** — List campaigns with optional filters.
 
-### Installing Node.js
+### Messages (Content Assets)
+- **create_message** — Create a new message with link or media attachments.  
+- **get_message_by_id** — Get message data by ID.  
+- **list_messages** — List messages by campaign or message IDs.
 
-**macOS:**
-1. Visit [nodejs.org](https://nodejs.org)
-2. Download the LTS installer (.pkg file)
-3. Double-click and follow the installation wizard
+### Posts
+- **create_post** — Create a social post, optionally sending it to workflow.  
+- **update_post** — Update an unsent post.  
+- **get_post** — Retrieve a post by ID, optionally with analytics.  
+- **list_social_posts** — List social posts by post ID.  
+- **get_social_post** — Get a single social post with optional stats.
 
-**Alternative (if you have Homebrew):**
-```bash
-brew install node
-```
+### Media & Uploads
+- **create_media** — Create a media asset from a public image URL.  
+- **list_media** — List media assets with optional filters.  
+- **get_media** — Get media by ID.  
+- **create_upload** — Create a media upload request from a public URL.  
+- **list_uploads** — List uploads with filters.  
+- **get_upload** — Get an upload by ID.
 
-**Windows:**
-1. Visit [nodejs.org](https://nodejs.org)
-2. Download the LTS installer (.msi file)
-3. Run the installer and follow the wizard
+### Calendar & Planning
+- **get_calendar** — Retrieve calendar data with optional filters.
 
-**Linux (Ubuntu/Debian):**
-```bash
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-sudo apt-get install -y nodejs
-```
+### Social Profiles
+- **list_social_profiles** — List connected social profiles.  
+- **get_social_profile** — Get a single social profile by ID.
 
-**Verify Installation:**
-```bash
-node --version
-npm --version
-```
+### Approvals
+- **list_workflows** — List all workflows and their steps.  
+- **list_workflow_items** — List messages and posts pending approval.  
+- **process_workflow_item** — Approve or reject an item (with optional note).  
+- **list_workflow_item_notes** — List workflow notes for a post or message.  
+- **add_workflow_item_note** — Add a workflow note for a post or message.
 
-## Usage
+### Employee Advocacy
+- **list_boards** — List all advocacy boards.  
+- **list_board_topics** — List topics for advocacy boards.  
+- **create_board_topic** — Create a new board topic.  
+- **list_board_stories** — List stories in a board.  
+- **create_board_story** — Create a new advocacy story.  
+- **update_board_story** — Update an existing story.
 
-### Claude Desktop
+### Users
+- **list_users** — List users with basic info.  
+- **get_user** — Get detailed information for a specific user.  
 
-**Step 1: Find your configuration file**
 
-The Claude Desktop configuration file is located at:
-- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
+### Feedback
+- **send_feedback** — Send bug reports or feature requests.
 
-**Step 2: Add the MCP server configuration**
 
-Add the following to your `claude_desktop_config.json` file:
+## Authorization
+
+The Oktopost MCP Server supports multiple authentication flows depending on the client type. All methods authenticate against the Oktopost REST API and respect the user's roles, permissions, and asset-level access.
+
+### Desktop Clients (Local Configuration)
+
+Desktop MCP clients authenticate using environment variables defined in your local MCP configuration file. To run the MCP server locally, you must have **Node.js v20 or higher** installed and access to your Oktopost **Account ID**, **Region**, and **API Key**.
+
+
+##### Example: How to Connect Claude Desktop
+
+1. Add a local MCP server (using a command).
+2. Open Claude Desktop's Settings and go to the Developer tab.
+3. Click the Edit Config button to open the ```claude_desktop_config.json``` file.
+4. Add a new entry to the mcpServers section with a name, command, and args that point to your server's executable and its arguments (for example, a Python script).
+5. Save the file.
+6. Close and restart Claude Desktop to reload the configuration and enable the server. 
+
 
 ```json
 {
@@ -65,44 +94,22 @@ Add the following to your `claude_desktop_config.json` file:
     }
   }
 }
-```
+````
 
-**Step 3: Restart Claude Desktop**
 
-After saving the configuration file, restart Claude Desktop for the changes to take effect.
+### ChatGPT & Claude (OAuth)
 
-### Other MCP Clients
+ChatGPT and Claude (cloud versions) connect with Oktopost via **OAuth**. Users approve the requested scopes during the authorization flow, granting the MCP client secure, permission-aware access to your Oktopost workspace.
 
-Besides Claude Desktop, this MCP server works with many other MCP clients:
+### Automation Tools (Basic Auth)
 
-#### Desktop Applications
-- **5ire** - Cross-platform AI assistant
-- **Cherry Studio** - Multi-LLM desktop client
-- **HyperChat** - Open source chat client
+Automation platforms—such as **n8n** can connect to
+**[https://mcp.oktopost.com](https://mcp.oktopost.com)** using **Basic HTTP Authentication**:
 
-#### Command Line Tools
-- **mcptools** - Go-based CLI: `brew install f/mcptools/mcp`
-- **mcp-client-cli** - Simple CLI for MCP servers
-- **mcp-cli** - Advanced chat mode with streaming
+* **Username:** Your Oktopost **Account ID**
+* **Password:** Your **API token** from Oktopost (generated in your account settings)
 
-#### IDE Integrations
-- **Visual Studio Code** - Official MCP support (preview)
-- **Sourcegraph Cody** - VSCode and JetBrains extensions
-- **Zed Editor** - High-performance editor with MCP support
-
-#### Programming Libraries
-- **mcp-use** - Python library for LLM-MCP integration
-- **open-mcp-client** - Open source MCP client library
-
-For a complete list of MCP clients, visit the [awesome-mcp-clients](https://github.com/punkpeye/awesome-mcp-clients) repository.
-
-### Configuration Options
-
-| Environment Variable | Description | Default |
-|---------------------|-------------|---------|
-| `OKTOPOST_ACCOUNT_REGION` | Oktopost region ("us" or "eu") | `us` |
-| `OKTOPOST_ACCOUNT_ID` | Your Oktopost account ID | Required |
-| `OKTOPOST_API_KEY` | Your Oktopost API key | Required |
+This enables automation systems to interact safely and programmatically with the full MCP toolset.
 
 ## Support
 
@@ -110,9 +117,9 @@ For a complete list of MCP clients, visit the [awesome-mcp-clients](https://gith
 
 If you encounter issues or have questions about the Oktopost MCP Server:
 
-1. **Check the Documentation** - Review this README and configuration examples
-2. **Search Issues** - Check [GitHub Issues](https://github.com/Oktopost/oktopost-mcp/issues) for similar problems
-3. **Create an Issue** - If you find a bug or need a feature, [open a new issue](https://github.com/Oktopost/oktopost-mcp/issues/new)
+1. **Check the Documentation** - Review this README and configuration examples.
+2. **Search Issues** - Check [GitHub Issues](https://github.com/Oktopost/oktopost-mcp/issues) for similar problems.
+3. **Create an Issue** - If you find a bug or need a feature, [open a new issue](https://github.com/Oktopost/oktopost-mcp/issues/new).
 
 ### Contact Information
 
@@ -122,4 +129,8 @@ If you encounter issues or have questions about the Oktopost MCP Server:
 
 ## License
 
-MIT
+This MCP Server is provided under the **Apache License 2.0**.
+
+Oktopost customers may use this implementation in accordance with the Oktopost platform's Terms and Conditions.  
+
+Developers are free to review the source code, modify it, and build their own MCP Server implementations for Oktopost, subject to the permissions and conditions defined in the Apache 2.0 license.
